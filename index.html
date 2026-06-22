@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0D1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Maturità 2026">
+<link rel="manifest" href="manifest.json">
+<title>Maturità 2026 – Il tuo piano</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0D1117;
+    --surface: #161B22;
+    --surface2: #21262D;
+    --accent: #7C3AED;
+    --accent-soft: #A855F7;
+    --green: #10B981;
+    --yellow: #F59E0B;
+    --red: #EF4444;
+    --text: #F0F0F0;
+    --text-muted: #8B949E;
+    --border: #30363D;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px 10px;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .app-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .app-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .countdown-badge {
+    background: var(--accent);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .progress-wrap {
+    position: relative;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-soft));
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 20px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer { 0%,100%{opacity:0} 50%{opacity:1} }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── MAIN ── */
+  .main { padding: 16px 16px 100px; }
+
+  /* ── NOTIFY BANNER ── */
+  .notify-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(168,85,247,0.08));
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  .notify-banner span { flex: 1; color: var(--text-muted); }
+  .notify-banner strong { color: var(--accent-soft); }
+  .btn-notify {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .btn-notify:hover { background: var(--accent-soft); }
+
+  /* ── DAY CARDS ── */
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .day-card.today { border-color: var(--green); }
+  .day-card.past  { opacity: 0.6; }
+
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Day date block */
+  .day-date-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .day-date-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .day-date-month {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 1px;
+  }
+  .day-card.today .day-date-num,
+  .day-card.today .day-date-month { color: var(--green); }
+
+  .day-info { flex: 1; min-width: 0; }
+  .day-name { font-weight: 600; font-size: 15px; }
+  .day-weekday { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; text-transform: capitalize; }
+  .day-focus {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* day progress ring */
+  .day-progress-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .ring-svg { width: 36px; height: 36px; transform: rotate(-90deg); }
+  .ring-bg   { fill: none; stroke: var(--surface2); stroke-width: 3.5; }
+  .ring-fill { fill: none; stroke: var(--green); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset 0.4s; }
+  .ring-pct  { font-size: 9px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+  .day-chevron {
+    color: var(--text-muted);
+    font-size: 12px;
+    transition: transform 0.25s;
+    flex-shrink: 0;
+  }
+  .day-card.open .day-chevron { transform: rotate(180deg); }
+
+  /* Sessions */
+  .day-body {
+    display: none;
+    padding: 0 16px 14px;
+  }
+  .day-card.open .day-body { display: block; }
+
+  .session {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+    align-items: flex-start;
+    transition: opacity 0.2s;
+  }
+  .session.done { opacity: 0.45; }
+
+  /* Checkbox */
+  .sess-check-wrap {
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+  .sess-check {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.18s;
+    flex-shrink: 0;
+  }
+  .sess-check:checked {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .sess-check:checked::after {
+    content: '✓';
+    position: absolute;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .sess-check:active { transform: scale(0.88); }
+
+  .session-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    width: 82px;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+  .session.done .session-time { text-decoration: line-through; }
+
+  .session-content { flex: 1; min-width: 0; }
+  .session-label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 3px;
+    transition: color 0.2s;
+  }
+  .session.done .session-label { color: var(--text-muted); text-decoration: line-through; }
+  .session-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .session-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-right: 4px;
+    margin-top: 5px;
+  }
+  .tag-it     { background: rgba(245,158,11,0.15);  color: var(--yellow); }
+  .tag-inf    { background: rgba(124,58,237,0.15);  color: var(--accent-soft); }
+  .tag-sis    { background: rgba(16,185,129,0.15);  color: var(--green); }
+  .tag-eng    { background: rgba(239,68,68,0.15);   color: var(--red); }
+  .tag-ec     { background: rgba(99,202,183,0.15);  color: #63CAB7; }
+  .tag-rel    { background: rgba(139,148,158,0.12); color: var(--text-muted); }
+  .tag-custom { background: rgba(168,85,247,0.15);  color: var(--accent-soft); }
+
+  .session-actions { display: flex; gap: 6px; margin-top: 6px; }
+  .btn-icon {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-icon:hover { background: var(--border); color: var(--text); }
+  .btn-icon.danger:hover { background: rgba(239,68,68,0.15); color: var(--red); border-color: var(--red); }
+
+  /* ── FAB ── */
+  .fab {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    color: #fff;
+    font-size: 24px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(124,58,237,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 200;
+  }
+  .fab:hover { transform: scale(1.08); box-shadow: 0 6px 32px rgba(124,58,237,0.65); }
+  .fab:active { transform: scale(0.95); }
+
+  /* ── MODAL ── */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 300;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius) var(--radius) 0 0;
+    width: 100%;
+    max-width: 520px;
+    padding: 20px 20px 36px;
+    animation: slideUp 0.28s cubic-bezier(.4,0,.2,1);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 18px; }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--text-muted); margin-bottom: 5px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 70px; }
+  .field select option { background: var(--surface); }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .btn-primary {
+    flex: 1;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--accent-soft); }
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 20px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  /* ── TOAST ── */
+  .toast-wrap {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 500;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.25s;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-top">
+    <div>
+      <div class="app-title">📚 Maturità 2026</div>
+      <div class="app-subtitle" id="subtitleText">Il tuo piano personale</div>
+    </div>
+    <div class="countdown-badge" id="countdownBadge">– giorni</div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
+  <div class="progress-label">
+    <span id="progressLeft">Inizio</span>
+    <span id="progressRight">Maturità 🎓</span>
+  </div>
+</header>
+
+<main class="main">
+  <div class="notify-banner" id="notifyBanner" style="display:none">
+    <span>🔔 Attiva le <strong>notifiche</strong> per i promemoria delle sessioni</span>
+    <button class="btn-notify">Attiva</button>
+  </div>
+  <div id="dayList"></div>
+</main>
+
+<button class="fab" onclick="openModal()" title="Aggiungi evento">＋</button>
+
+<div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">Aggiungi sessione</div>
+    <input type="hidden" id="editDayIdx">
+    <input type="hidden" id="editSessIdx">
+    <div class="field">
+      <label>Giorno</label>
+      <select id="fieldDay"></select>
+    </div>
+    <div class="row-2">
+      <div class="field">
+        <label>Orario inizio</label>
+        <input type="time" id="fieldStart" value="09:30">
+      </div>
+      <div class="field">
+        <label>Orario fine</label>
+        <input type="time" id="fieldEnd" value="10:30">
+      </div>
+    </div>
+    <div class="field">
+      <label>Titolo sessione</label>
+      <input type="text" id="fieldLabel" placeholder="es. Ripasso Leopardi">
+    </div>
+    <div class="field">
+      <label>Descrizione (opzionale)</label>
+      <textarea id="fieldDesc" placeholder="Note, argomenti specifici…"></textarea>
+    </div>
+    <div class="field">
+      <label>Materia</label>
+      <select id="fieldTag">
+        <option value="tag-it">📖 Italiano</option>
+        <option value="tag-inf">💻 Informatica</option>
+        <option value="tag-sis">🌐 Sistemi</option>
+        <option value="tag-eng">🇬🇧 Inglese</option>
+        <option value="tag-ec">⚖️ Ed. Civica</option>
+        <option value="tag-rel">☕ Relax / Pausa</option>
+        <option value="tag-custom">✨ Personalizzato</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Notifica (minuti prima)</label>
+      <select id="fieldNotify">
+        <option value="0">Nessuna</option>
+        <option value="10" selected>10 minuti prima</option>
+        <option value="30">30 minuti prima</option>
+        <option value="60">1 ora prima</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Annulla</button>
+      <button class="btn-primary" id="modalSaveBtn" onclick="saveSession()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap"><div class="toast" id="toast"></div></div>
+
+<script>
+// ─── DATES ───────────────────────────────────────────────────────────────────
+// Primo giorno studio: 23 giugno 2026
+// Ultimo giorno / orale: 28 giugno 2026
+const STUDY_START = new Date(2026, 5, 23); // mese 0-based
+const EXAM_DATE   = new Date(2026, 5, 28);
+
+// Formattatore locale italiano
+const FMT_WEEKDAY = new Intl.DateTimeFormat('it-IT', { weekday: 'long' });
+const FMT_DAY     = new Intl.DateTimeFormat('it-IT', { day: 'numeric' });
+const FMT_MONTH   = new Intl.DateTimeFormat('it-IT', { month: 'short' });
+const FMT_FULL    = new Intl.DateTimeFormat('it-IT', { weekday:'long', day:'numeric', month:'long' });
+
+// ─── DEFAULT PLAN ─────────────────────────────────────────────────────────────
+const DEFAULT_PLAN = [
+  {
+    title: "Le Fondamenta e il Sé",
+    focus: "PCTO · Leopardi · Verga · Sistemi base",
+    sessions: [
+      { time:"08:30–09:30", label:"Sveglia & Riscaldamento", desc:"Colazione e attivazione mentale. Rileggi gli obiettivi della giornata.", tag:"tag-rel", notify:0 },
+      { time:"09:30–13:00", label:"Mattina: Discorso & PCTO", desc:"Prepara l'apertura autobiografica (chi sei, perché questo indirizzo, cosa farai dopo) e la presentazione del PCTO. Devono essere fluidi.", tag:"tag-it", notify:10 },
+      { time:"13:00–14:30", label:"Pranzo & Relax", desc:"Stacca completamente. Niente libri.", tag:"tag-rel", notify:0 },
+      { time:"14:30–16:30", label:"☀️ Piscina", desc:"Il tuo momento per battere il caldo e ricaricare le energie.", tag:"tag-rel", notify:0 },
+      { time:"16:30–19:30", label:"Pomeriggio: Italiano – Le basi", desc:"Leopardi e Verga: i pilastri del pessimismo che ritroverai in tutto il programma.", tag:"tag-it", notify:10 },
+      { time:"19:30–21:00", label:"Cena & Relax", desc:"", tag:"tag-rel", notify:0 },
+      { time:"21:00–22:30", label:"Sera: Ripasso Sistemi", desc:"Well-known ports e protocolli base di Sistemi.", tag:"tag-sis", notify:10 },
+    ]
+  },
+  {
+    title: "Logica Tecnica e Rivoluzioni",
+    focus: "Informatica DB · Inglese · Simulazione orale",
+    sessions: [
+      { time:"08:30–09:30", label:"Sveglia & Riscaldamento", desc:"", tag:"tag-rel", notify:0 },
+      { time:"09:30–13:00", label:"Mattina: Informatica – Database", desc:"Modello Relazionale, fasi di progettazione (concettuale, logica, fisica) e operazioni CRUD.", tag:"tag-inf", notify:10 },
+      { time:"13:00–14:30", label:"Pranzo & Relax", desc:"", tag:"tag-rel", notify:0 },
+      { time:"14:30–16:30", label:"☀️ Piscina", desc:"", tag:"tag-rel", notify:0 },
+      { time:"16:30–19:30", label:"Pomeriggio: Inglese", desc:"Testi tecnici e concetti di 'Industrial Revolution' da collegare a quella digitale.", tag:"tag-eng", notify:10 },
+      { time:"19:30–21:00", label:"Cena & Relax", desc:"", tag:"tag-rel", notify:0 },
+      { time:"21:00–22:30", label:"Sera: Simulazione Orale", desc:"Simula l'apertura preparata ieri. Registrati e riascolta.", tag:"tag-it", notify:10 },
+    ]
+  },
+  {
+    title: "L'Uomo del Novecento",
+    focus: "Svevo · Pirandello · SQL · VPN & DMZ",
+    sessions: [
+      { time:"08:30–09:30", label:"Sveglia & Riscaldamento", desc:"", tag:"tag-rel", notify:0 },
+      { time:"09:30–13:00", label:"Mattina: Italiano – I Giganti", desc:"Svevo e Pirandello. Concetti di Inetto e Maschera, collegabili all'identità digitale.", tag:"tag-it", notify:10 },
+      { time:"13:00–14:30", label:"Pranzo & Relax", desc:"", tag:"tag-rel", notify:0 },
+      { time:"14:30–16:30", label:"☀️ Piscina", desc:"", tag:"tag-rel", notify:0 },
+      { time:"16:30–19:30", label:"Pomeriggio: Informatica – SQL", desc:"Query (SELECT, JOIN, raggruppamenti) e normalizzazione (1FN, 2FN, 3FN).", tag:"tag-inf", notify:10 },
+      { time:"19:30–21:00", label:"Cena & Relax", desc:"", tag:"tag-rel", notify:0 },
+      { time:"21:00–22:30", label:"Sera: Sistemi – VPN & DMZ", desc:"Ripasso VPN e DMZ: le tue armi forti!", tag:"tag-sis", notify:10 },
+    ]
+  },
+  {
+    title: "Poesia e Umanesimo Digitale",
+    focus: "Ungaretti · Montale · AI Act · Ed. Civica",
+    sessions: [
+      { time:"08:30–09:30", label:"Sveglia & Riscaldamento", desc:"", tag:"tag-rel", notify:0 },
+      { time:"09:30–13:00", label:"Mattina: Italiano – Poesia Pura", desc:"Ungaretti e Montale. Lo spazio bianco in Ungaretti è importante quanto la parola.", tag:"tag-it", notify:10 },
+      { time:"13:00–14:30", label:"Pranzo & Relax", desc:"", tag:"tag-rel", notify:0 },
+      { time:"14:30–16:30", label:"☀️ Piscina", desc:"", tag:"tag-rel", notify:0 },
+      { time:"16:30–19:30", label:"Pomeriggio: Ed. Civica", desc:"AI Act e Magnifica Humanitas. Unisci Sistemi, Italiano e Informatica parlando di etica e algoritmi.", tag:"tag-ec", notify:10 },
+      { time:"19:30–21:00", label:"Cena & Relax", desc:"", tag:"tag-rel", notify:0 },
+      { time:"21:00–22:30", label:"Sera: Sindrome di Babele", desc:"Spiega a voce alta il concetto di Sindrome di Babele applicata ai social.", tag:"tag-it", notify:10 },
+    ]
+  },
+  {
+    title: "Il Web dei Collegamenti",
+    focus: "D'Annunzio · Pascoli · Percorsi interdisciplinari",
+    sessions: [
+      { time:"08:30–09:30", label:"Sveglia & Riscaldamento", desc:"", tag:"tag-rel", notify:0 },
+      { time:"09:30–13:00", label:"Mattina: Italiano – Rifiniture", desc:"D'Annunzio, Pascoli e le Avanguardie. Usa la tabella dei collegamenti rapidi.", tag:"tag-it", notify:10 },
+      { time:"13:00–14:30", label:"Pranzo & Relax", desc:"", tag:"tag-rel", notify:0 },
+      { time:"14:30–16:30", label:"☀️ Piscina", desc:"", tag:"tag-rel", notify:0 },
+      { time:"16:30–19:30", label:"Pomeriggio: Incroci Interdisciplinari", desc:"3+ percorsi che collegano le 4 materie. Es: Progresso → Leopardi → Rivoluzione Industriale → Cloud.", tag:"tag-custom", notify:10 },
+      { time:"19:30–21:00", label:"Cena & Relax", desc:"", tag:"tag-rel", notify:0 },
+      { time:"21:00–22:30", label:"Sera: Sistemi – Domande Difficili", desc:"Simula risposte a troubleshooting a livelli. Usa terminologia precisa: Trunk, Handshake TLS, ecc.", tag:"tag-sis", notify:10 },
+    ]
+  },
+  {
+    title: "La Prova Generale 🎓",
+    focus: "Simulazione completa · Zero nuovi argomenti",
+    sessions: [
+      { time:"08:30–09:30", label:"Sveglia & Riscaldamento", desc:"Ultimo giorno: stai per farcela.", tag:"tag-rel", notify:0 },
+      { time:"09:30–13:00", label:"Mattina: Simulazione Completa", desc:"Fatti interrogare partendo dal Curriculum dello studente, saltando tra materie come fa la commissione.", tag:"tag-custom", notify:10 },
+      { time:"13:00–14:30", label:"Pranzo & Relax", desc:"", tag:"tag-rel", notify:0 },
+      { time:"14:30–16:30", label:"☀️ Piscina", desc:"", tag:"tag-rel", notify:0 },
+      { time:"16:30–19:30", label:"Pomeriggio: Solo i Punti Deboli", desc:"Torna SOLO sulle cose che stamattina non ricordavi. Nessun argomento nuovo.", tag:"tag-custom", notify:10 },
+      { time:"19:30–21:00", label:"Cena & Relax", desc:"", tag:"tag-rel", notify:0 },
+      { time:"21:00–22:30", label:"🎉 Zero Studio – Stacca Tutto!", desc:"Chiudi i libri, piscina lunga, tanto relax. Il cervello deve essere fresco.", tag:"tag-rel", notify:0 },
+    ]
+  },
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const PLAN_KEY  = 'maturita_plan_v3';
+const CHECK_KEY = 'maturita_checks_v3';
+
+function loadPlan() {
+  try { const r = localStorage.getItem(PLAN_KEY); if (r) return JSON.parse(r); } catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_PLAN));
+}
+function savePlan(p) { localStorage.setItem(PLAN_KEY, JSON.stringify(p)); }
+
+// checks: { "di-si": true }
+function loadChecks() {
+  try { const r = localStorage.getItem(CHECK_KEY); if (r) return JSON.parse(r); } catch(e){}
+  return {};
+}
+function saveChecks(c) { localStorage.setItem(CHECK_KEY, JSON.stringify(c)); }
+
+let plan   = loadPlan();
+let checks = loadChecks();
+
+// ─── DATE UTILS ───────────────────────────────────────────────────────────────
+function dayStart(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function todayDate() { return dayStart(new Date()); }
+
+function getStudyDay(idx) {
+  const d = new Date(STUDY_START);
+  d.setDate(d.getDate() + idx);
+  return dayStart(d);
+}
+
+function getDayStatus(idx) {
+  const t = todayDate().getTime();
+  const d = getStudyDay(idx).getTime();
+  if (d < t) return 'past';
+  if (d === t) return 'today';
+  return 'future';
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+const TAG_LABELS = {
+  'tag-it':'Italiano','tag-inf':'Informatica','tag-sis':'Sistemi',
+  'tag-eng':'Inglese','tag-ec':'Ed. Civica','tag-rel':'Relax','tag-custom':'Extra'
+};
+
+function renderAll() { renderHeader(); renderDays(); }
+
+function renderHeader() {
+  const t    = todayDate();
+  const exam = dayStart(EXAM_DATE);
+  const diff = Math.round((exam - t) / 86400000);
+
+  document.getElementById('countdownBadge').textContent =
+    diff > 0 ? `−${diff} ${diff===1?'giorno':'giorni'}` :
+    diff === 0 ? 'DOMANI 🎓' : 'In bocca al lupo! 🎓';
+
+  const total = Math.max(1, (exam - dayStart(STUDY_START)) / 86400000);
+  const done  = Math.max(0, Math.min(total, (t - dayStart(STUDY_START)) / 86400000));
+  const pct   = Math.round((done / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLeft').textContent = `${pct}% completato`;
+
+  document.getElementById('subtitleText').textContent =
+    diff > 0 ? `Mancano ${diff} ${diff===1?'giorno':'giorni'} all'orale` :
+    diff === 0 ? '🎓 Domani è il grande giorno!' :
+    diff < 0 && diff > -2 ? '🎓 Oggi è il grande giorno!' : 'Hai superato la Maturità! 🥳';
+}
+
+function getDayProgress(di) {
+  const total = plan[di].sessions.length;
+  if (!total) return { done: 0, total: 0, pct: 0 };
+  const done = plan[di].sessions.filter((_,si) => checks[`${di}-${si}`]).length;
+  return { done, total, pct: Math.round((done/total)*100) };
+}
+
+function renderRing(pct) {
+  const r = 14, circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
+  const color = pct === 100 ? 'var(--green)' : pct > 0 ? 'var(--accent-soft)' : 'var(--border)';
+  return `
+    <svg class="ring-svg" viewBox="0 0 36 36">
+      <circle class="ring-bg" cx="18" cy="18" r="${r}"/>
+      <circle class="ring-fill" cx="18" cy="18" r="${r}"
+        style="stroke:${color}; stroke-dasharray:${circ.toFixed(1)}; stroke-dashoffset:${offset.toFixed(1)}"/>
+    </svg>
+    <span class="ring-pct">${pct}%</span>
+  `;
+}
+
+function renderDays() {
+  const list = document.getElementById('dayList');
+  list.innerHTML = '';
+
+  plan.forEach((day, i) => {
+    const status  = getDayStatus(i);
+    const dayDate = getStudyDay(i);
+    const dayNum  = FMT_DAY.format(dayDate);
+    const dayMon  = FMT_MONTH.format(dayDate).replace('.','');
+    const weekday = FMT_WEEKDAY.format(dayDate);
+    const prog    = getDayProgress(i);
+
+    const card = document.createElement('div');
+    card.className = `day-card ${status}`;
+    card.id = `day-${i}`;
+
+    const badgeLabel = status === 'today' ? 'OGGI' : status === 'past' ? '✓ passato' : weekday;
+
+    card.innerHTML = `
+      <div class="day-header" onclick="toggleDay(${i})">
+        <div class="day-date-block">
+          <div class="day-date-num">${dayNum}</div>
+          <div class="day-date-month">${dayMon}</div>
+        </div>
+        <div class="day-info">
+          <div class="day-weekday">${weekday}</div>
+          <div class="day-name">${day.title}</div>
+          <div class="day-focus">${day.focus}</div>
+        </div>
+        <div class="day-progress-wrap">
+          ${renderRing(prog.pct)}
+        </div>
+        <span class="day-chevron">▼</span>
+      </div>
+      <div class="day-body">
+        ${day.sessions.map((s,si) => renderSession(s, i, si)).join('')}
+        <div style="margin-top:10px">
+          <button class="btn-icon" onclick="openModal(${i})">＋ Aggiungi sessione</button>
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+
+  // Auto-open today
+  const todayIdx = plan.findIndex((_,i) => getDayStatus(i) === 'today');
+  if (todayIdx >= 0) toggleDay(todayIdx, true);
+}
+
+function renderSession(s, di, si) {
+  const checked = checks[`${di}-${si}`] || false;
+  return `
+    <div class="session${checked?' done':''}" id="sess-${di}-${si}">
+      <div class="sess-check-wrap">
+        <input type="checkbox" class="sess-check"
+          id="chk-${di}-${si}"
+          ${checked ? 'checked' : ''}
+          onchange="toggleCheck(${di},${si},this.checked)">
+      </div>
+      <div class="session-time">${s.time}</div>
+      <div class="session-content">
+        <div class="session-label">${s.label}</div>
+        ${s.desc ? `<div class="session-desc">${s.desc}</div>` : ''}
+        <span class="session-tag ${s.tag}">${TAG_LABELS[s.tag] || 'Extra'}</span>
+        <div class="session-actions">
+          <button class="btn-icon" onclick="editSession(${di},${si})">✏️ Modifica</button>
+          <button class="btn-icon danger" onclick="deleteSession(${di},${si})">🗑 Elimina</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleCheck(di, si, checked) {
+  const key = `${di}-${si}`;
+  if (checked) checks[key] = true;
+  else delete checks[key];
+  saveChecks(checks);
+
+  // update session appearance without full re-render
+  const sessEl = document.getElementById(`sess-${di}-${si}`);
+  if (sessEl) sessEl.classList.toggle('done', checked);
+
+  // update the ring for this day
+  const prog = getDayProgress(di);
+  const ringWrap = document.querySelector(`#day-${di} .day-progress-wrap`);
+  if (ringWrap) ringWrap.innerHTML = renderRing(prog.pct);
+
+  if (checked) showToast('✅ Completato!');
+
+  // If whole day done, celebrate
+  if (prog.done === prog.total && prog.total > 0) {
+    setTimeout(() => showToast('🎉 Giornata completata!'), 300);
+  }
+}
+
+function toggleDay(idx, forceOpen) {
+  const card = document.getElementById(`day-${idx}`);
+  if (!card) return;
+  if (forceOpen) { card.classList.add('open'); return; }
+  card.classList.toggle('open');
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function openModal(dayIdx) {
+  const sel = document.getElementById('fieldDay');
+  sel.innerHTML = plan.map((d,i) => {
+    const dt = getStudyDay(i);
+    const label = FMT_FULL.format(dt);
+    return `<option value="${i}" ${i===dayIdx?'selected':''}>${label} – ${d.title}</option>`;
+  }).join('');
+
+  document.getElementById('editDayIdx').value = '';
+  document.getElementById('editSessIdx').value = '';
+  document.getElementById('modalTitle').textContent = 'Aggiungi sessione';
+  document.getElementById('modalSaveBtn').textContent = 'Salva';
+  document.getElementById('fieldLabel').value = '';
+  document.getElementById('fieldDesc').value = '';
+  document.getElementById('fieldStart').value = '09:30';
+  document.getElementById('fieldEnd').value = '10:30';
+  document.getElementById('fieldTag').value = 'tag-it';
+  document.getElementById('fieldNotify').value = '10';
+  document.getElementById('overlay').classList.add('open');
+}
+
+function editSession(di, si) {
+  const s = plan[di].sessions[si];
+  openModal(di);
+  document.getElementById('editDayIdx').value = di;
+  document.getElementById('editSessIdx').value = si;
+  document.getElementById('modalTitle').textContent = 'Modifica sessione';
+  document.getElementById('modalSaveBtn').textContent = 'Aggiorna';
+  document.getElementById('fieldLabel').value = s.label;
+  document.getElementById('fieldDesc').value = s.desc || '';
+  const [tStart, tEnd] = (s.time || '09:30–10:30').split('–');
+  document.getElementById('fieldStart').value = tStart || '09:30';
+  document.getElementById('fieldEnd').value = tEnd || '10:30';
+  document.getElementById('fieldTag').value = s.tag || 'tag-it';
+  document.getElementById('fieldNotify').value = s.notify ?? 10;
+}
+
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('overlay')) closeModal();
+}
+
+function saveSession() {
+  const label = document.getElementById('fieldLabel').value.trim();
+  if (!label) { showToast('⚠️ Inserisci un titolo'); return; }
+
+  const di    = parseInt(document.getElementById('fieldDay').value);
+  const edi   = document.getElementById('editDayIdx').value;
+  const esi   = document.getElementById('editSessIdx').value;
+
+  const sess = {
+    time:   `${document.getElementById('fieldStart').value}–${document.getElementById('fieldEnd').value}`,
+    label,
+    desc:   document.getElementById('fieldDesc').value.trim(),
+    tag:    document.getElementById('fieldTag').value,
+    notify: parseInt(document.getElementById('fieldNotify').value),
+  };
+
+  if (edi !== '' && esi !== '') {
+    plan[parseInt(edi)].sessions[parseInt(esi)] = sess;
+    showToast('✅ Sessione aggiornata');
+  } else {
+    plan[di].sessions.push(sess);
+    showToast('✅ Sessione aggiunta');
+  }
+
+  if (sess.notify > 0) scheduleNotification(di, sess);
+
+  savePlan(plan);
+  closeModal();
+  renderDays();
+  setTimeout(() => toggleDay(di, true), 50);
+}
+
+function deleteSession(di, si) {
+  if (!confirm('Eliminare questa sessione?')) return;
+  plan[di].sessions.splice(si, 1);
+  // shift checks keys
+  const newChecks = {};
+  Object.keys(checks).forEach(k => {
+    const [d, s] = k.split('-').map(Number);
+    if (d === di) {
+      if (s < si) newChecks[k] = checks[k];
+      else if (s > si) newChecks[`${d}-${s-1}`] = checks[k];
+      // s === si is deleted
+    } else {
+      newChecks[k] = checks[k];
+    }
+  });
+  checks = newChecks;
+  saveChecks(checks);
+  savePlan(plan);
+  renderDays();
+  setTimeout(() => toggleDay(di, true), 50);
+  showToast('🗑 Sessione eliminata');
+}
+
+// ─── NOTIFICATIONS (robuste con SW) ──────────────────────────────────────────
+let swRegistration = null;
+
+// La pagina deve essere su HTTPS (o localhost): senza un'origine "sicura"
+// il browser nasconde del tutto il permesso notifiche per il sito, ed è
+// esattamente il motivo per cui a volte non si trova nessuna opzione da
+// attivare nelle impostazioni del browser.
+function isInsecureContext() {
+  return location.protocol === 'file:' ||
+    (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1');
+}
+
+function detectBrowserHelp() {
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+  const isAndroid = /Android/.test(ua);
+  const isChrome = /Chrome/.test(ua) && !/Edg/.test(ua);
+  const isFirefox = /Firefox/.test(ua);
+  const isEdge = /Edg/.test(ua);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+  if (isIOS) {
+    if (!isStandalone) {
+      return 'Su iPhone/iPad, Safari NON supporta le notifiche se il sito è apri come normale pagina web. Devi:\n\n1. Apri questo sito in Safari\n2. Tocca l\'icona Condividi (il quadrato con la freccia)\n3. Scegli "Aggiungi alla schermata Home"\n4. Apri l\'app dall\'icona in Home (non da Safari)\n5. Da lì potrai attivare le notifiche\n\nRichiede iOS 16.4 o superiore.';
+    }
+    return 'Vai in Impostazioni di iOS → Notifiche → cerca "Maturità 2026" (il nome con cui hai salvato l\'app in Home) → attiva "Consenti notifiche".';
+  }
+  if (isAndroid && isChrome) {
+    return 'Tocca i tre puntini ⋮ in alto a destra → Informazioni sito (o l\'icona 🔒/ℹ️ vicino all\'indirizzo) → Permessi → Notifiche → Consenti.';
+  }
+  if (isChrome || isEdge) {
+    return 'Clicca sull\'icona 🔒 o ℹ️ a sinistra dell\'indirizzo nella barra → Notifiche → Consenti. In alternativa apri chrome://settings/content/notifications (o edge://settings/content/notifications) e cerca questo sito tra quelli bloccati.';
+  }
+  if (isFirefox) {
+    return 'Clicca sull\'icona 🔒 a sinistra dell\'indirizzo → rimuovi il blocco sulle notifiche. Oppure vai su about:preferences#privacy → Permessi → Notifiche → Impostazioni, e cerca questo sito.';
+  }
+  if (isSafari) {
+    return 'Su Safari Mac: menu Safari → Impostazioni → Siti web → Notifiche → trova questo sito → imposta su Consenti.';
+  }
+  return 'Apri le impostazioni del browser, cerca i permessi del sito per le notifiche e impostale su "Consenti".';
+}
+
+function addBannerButton(banner, id, label, onClick) {
+  let btn = document.getElementById(id);
+  if (btn) { btn.onclick = onClick; btn.textContent = label; return btn; }
+  btn = document.createElement('button');
+  btn.id = id;
+  btn.className = 'btn-notify';
+  btn.style.background = 'transparent';
+  btn.style.border = '1px solid var(--accent)';
+  btn.style.color = 'var(--accent-soft)';
+  btn.textContent = label;
+  btn.onclick = onClick;
+  banner.appendChild(btn);
+  return btn;
+}
+
+function removeBannerButton(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function testNotification() {
+  const body = 'Se vedi questo messaggio, le notifiche funzionano correttamente!';
+  if (swRegistration) {
+    swRegistration.showNotification('🔔 Test notifica', {
+      body, icon: 'icon-192.png', badge: 'icon-192.png', vibrate: [200, 100, 200],
+      tag: 'test-notification', renotify: true,
+    });
+  } else {
+    new Notification('🔔 Test notifica', { body, icon: 'icon-192.png' });
+  }
+  showToast('📨 Notifica di test inviata');
+}
+
+function initNotifyBanner() {
+  const banner = document.getElementById('notifyBanner');
+  if (!banner) return;
+  const span = banner.querySelector('span');
+  const btn  = banner.querySelector('.btn-notify');
+  removeBannerButton('notifyHelpBtn');
+  removeBannerButton('notifyCloseBtn');
+
+  if (!('Notification' in window)) {
+    banner.style.display = 'none';
+    return;
+  }
+
+  if (isInsecureContext()) {
+    banner.style.display = 'flex';
+    span.innerHTML = '⚠️ Le notifiche richiedono che il sito sia servito via <strong>HTTPS</strong> (o localhost). Aperta così — come file locale o connessione non sicura — il browser non mostra nemmeno l\'opzione da attivare: per questo non la trovi nelle impostazioni.';
+    btn.style.display = 'none';
+    addBannerButton(banner, 'notifyHelpBtn', 'Come risolvere', () => {
+      alert('Per usare le notifiche, il sito deve avere un indirizzo http(s) reale:\n\n• Pubblicalo online (es. GitHub Pages, Netlify, Vercel, o un tuo hosting), oppure\n• In locale, avvialo con un piccolo server (es. "npx serve" o "python -m http.server") e aprilo da http://localhost:PORTA invece che con doppio click sul file.');
+    });
+    return;
+  }
+
+  if (Notification.permission === 'granted') {
+    if (localStorage.getItem('notifyBannerDismissed') === '1') {
+      banner.style.display = 'none';
+      return;
+    }
+    banner.style.display = 'flex';
+    span.innerHTML = '✅ Notifiche <strong>attive</strong> per questa pagina';
+    btn.style.display = 'inline-block';
+    btn.textContent = 'Testa';
+    btn.onclick = testNotification;
+    addBannerButton(banner, 'notifyCloseBtn', '✕', () => {
+      banner.style.display = 'none';
+      localStorage.setItem('notifyBannerDismissed', '1');
+    });
+    return;
+  }
+
+  if (Notification.permission === 'denied') {
+    banner.style.display = 'flex';
+    span.innerHTML = '⚠️ Notifiche <strong>bloccate</strong> per questa pagina';
+    btn.style.display = 'none';
+    addBannerButton(banner, 'notifyHelpBtn', 'Come sbloccarle', () => alert(detectBrowserHelp()));
+    return;
+  }
+
+  // permission === 'default'
+  banner.style.display = 'flex';
+  span.innerHTML = '🔔 Attiva le <strong>notifiche</strong> per i promemoria delle sessioni';
+  btn.style.display = 'inline-block';
+  btn.textContent = 'Attiva';
+  btn.onclick = requestNotifications;
+  addBannerButton(banner, 'notifyHelpBtn', 'Non funziona?', () => alert(detectBrowserHelp()));
+}
+
+async function requestNotifications() {
+  if (!('Notification' in window)) {
+    showToast('❌ Browser non supporta le notifiche'); return;
+  }
+  if (isInsecureContext()) {
+    initNotifyBanner();
+    showToast('❌ Serve HTTPS (o localhost) per attivare le notifiche');
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    showToast('🔔 Notifiche attivate!');
+    scheduleAllNotifications();
+  } else if (perm === 'denied') {
+    showToast('❌ Notifiche negate.');
+  }
+  initNotifyBanner();
+}
+
+function getSessionDateTimeMs(dayIdx, timeStr) {
+  const startStr = (timeStr || '').split('–')[0].trim();
+  const [hh, mm] = startStr.split(':').map(Number);
+  if (isNaN(hh) || isNaN(mm)) return null;
+  const d = new Date(getStudyDay(dayIdx));
+  d.setHours(hh, mm, 0, 0);
+  return d.getTime();
+}
+
+function scheduleNotification(dayIdx, sess) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!sess.notify) return;
+
+  const sessionMs = getSessionDateTimeMs(dayIdx, sess.time);
+  if (!sessionMs) return;
+  const notifyAt = sessionMs - sess.notify * 60000;
+  const delay    = notifyAt - Date.now();
+  if (delay < 0) return;
+
+  setTimeout(() => {
+    // Try SW showNotification first (works in background on Android)
+    if (swRegistration) {
+      swRegistration.showNotification(`⏰ ${sess.label}`, {
+        body: `Inizia tra ${sess.notify} min · ${sess.time}${sess.desc ? '\n'+sess.desc.slice(0,100) : ''}`,
+        icon: 'icon-192.png',
+        badge: 'icon-192.png',
+        vibrate: [200, 100, 200],
+        tag: `sess-${dayIdx}-${sess.time}`,
+        renotify: true,
+      });
+    } else {
+      // Fallback: Notification API diretta
+      new Notification(`⏰ ${sess.label}`, {
+        body: `Inizia tra ${sess.notify} min · ${sess.time}`,
+        icon: 'icon-192.png',
+      });
+    }
+  }, delay);
+}
+
+function scheduleAllNotifications() {
+  plan.forEach((day, di) => {
+    day.sessions.forEach(sess => scheduleNotification(di, sess));
+  });
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderAll();
+
+// Manage notification banner (diagnostica dinamica)
+initNotifyBanner();
+
+// Register Service Worker
+if ('serviceWorker' in navigator && !isInsecureContext()) {
+  navigator.serviceWorker.register('sw.js')
+    .then(reg => {
+      swRegistration = reg;
+      if (Notification.permission === 'granted') scheduleAllNotifications();
+      initNotifyBanner();
+    })
+    .catch(() => {
+      if (Notification.permission === 'granted') scheduleAllNotifications();
+    });
+}
+</script>
+</body>
+</html>
