@@ -1,11 +1,11 @@
 {
-  "name": "Maturità 2026 – Piano Studio",
-  "short_name": "Maturità 2026",
-  "description": "Il tuo piano personale per superare la Maturità 2026",
+  "name": "TOLC-I 2026 – Piano Studio",
+  "short_name": "TOLC-I",
+  "description": "Il tuo piano personale per superare il TOLC-I – 25 agosto",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0D1117",
-  "theme_color": "#7C3AED",
+  "theme_color": "#FF6B1A",
   "orientation": "portrait",
   "icons": [
     {

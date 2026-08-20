@@ -1,4 +1,4 @@
-const CACHE = 'maturita-v2';
+const CACHE = 'tolc-v1';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
@@ -26,13 +26,13 @@ self.addEventListener('fetch', e => {
 // Gestione notifiche push (per notifiche in background)
 self.addEventListener('push', e => {
   const data = e.data ? e.data.json() : {};
-  const title = data.title || '📚 Maturità 2026';
+  const title = data.title || '📚 TOLC-I 2026';
   const options = {
     body: data.body || 'Promemoria sessione di studio',
     icon: './icon-192.png',
     badge: './icon-192.png',
     vibrate: [200, 100, 200, 100, 200],
-    tag: data.tag || 'maturita-reminder',
+    tag: data.tag || 'tolc-reminder',
     renotify: true,
     requireInteraction: false,
     data: { url: self.registration.scope }

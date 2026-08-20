@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0D1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TOLC-I 2026">
+<link rel="manifest" href="manifest.json">
+<title>TOLC-I 2026 – Il tuo piano</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0D1117;
+    --surface: #161B22;
+    --surface2: #21262D;
+    --accent: #FF6B1A;
+    --accent-soft: #FF8C47;
+    --green: #10B981;
+    --yellow: #F59E0B;
+    --red: #EF4444;
+    --text: #F0F0F0;
+    --text-muted: #8B949E;
+    --border: #30363D;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px 10px;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .app-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .app-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .countdown-badge {
+    background: var(--accent);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .progress-wrap {
+    position: relative;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-soft));
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 20px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer { 0%,100%{opacity:0} 50%{opacity:1} }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── MAIN ── */
+  .main { padding: 16px 16px 100px; }
+
+  /* ── NOTIFY BANNER ── */
+  .notify-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(255,107,26,0.15), rgba(255,140,71,0.08));
+    border: 1px solid rgba(255,107,26,0.3);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  .notify-banner span { flex: 1; color: var(--text-muted); }
+  .notify-banner strong { color: var(--accent-soft); }
+  .btn-notify {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .btn-notify:hover { background: var(--accent-soft); }
+
+  /* ── DAY CARDS ── */
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .day-card.today { border-color: var(--green); }
+  .day-card.past  { opacity: 0.6; }
+
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Day date block */
+  .day-date-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .day-date-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .day-date-month {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 1px;
+  }
+  .day-card.today .day-date-num,
+  .day-card.today .day-date-month { color: var(--accent); }
+
+  .day-info { flex: 1; min-width: 0; }
+  .day-name { font-weight: 600; font-size: 15px; }
+  .day-weekday { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; text-transform: capitalize; }
+  .day-focus {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* day progress ring */
+  .day-progress-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .ring-svg { width: 36px; height: 36px; transform: rotate(-90deg); }
+  .ring-bg   { fill: none; stroke: var(--surface2); stroke-width: 3.5; }
+  .ring-fill { fill: none; stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset 0.4s; }
+  .ring-pct  { font-size: 9px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+  .day-chevron {
+    color: var(--text-muted);
+    font-size: 12px;
+    transition: transform 0.25s;
+    flex-shrink: 0;
+  }
+  .day-card.open .day-chevron { transform: rotate(180deg); }
+
+  /* Sessions */
+  .day-body {
+    display: none;
+    padding: 0 16px 14px;
+  }
+  .day-card.open .day-body { display: block; }
+
+  .session {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+    align-items: flex-start;
+    transition: opacity 0.2s;
+  }
+  .session.done { opacity: 0.45; }
+
+  /* Checkbox */
+  .sess-check-wrap {
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+  .sess-check {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .sess-check:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .sess-check:checked::after {
+    content: '✓';
+    font-size: 11px;
+    color: #fff;
+    font-weight: 700;
+  }
+
+  /* Session details */
+  .sess-details { flex: 1; min-width: 0; }
+  .sess-label { font-weight: 600; font-size: 14px; }
+  .sess-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .sess-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  .sess-notify-wrap {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    align-items: center;
+  }
+  .sess-notify-input {
+    width: 50px;
+    padding: 4px 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .sess-notify-input::placeholder { color: var(--text-muted); }
+
+  .sess-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .btn-sm {
+    padding: 4px 8px;
+    font-size: 11px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-sm:hover {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--accent);
+  }
+  .btn-del { border-color: var(--red); }
+  .btn-del:hover { color: var(--red); }
+
+  /* ── STATS FOOTER ── */
+  .stats-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: rgba(13,17,23,0.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    padding: 12px 16px 20px;
+  }
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .stat-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    background: var(--surface);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .stat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    z-index: 200;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .modal-field {
+    margin-bottom: 12px;
+  }
+  .modal-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-muted);
+  }
+  .modal-input {
+    width: 100%;
+    padding: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 14px;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .modal-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .modal-btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .modal-btn-primary:hover { background: var(--accent-soft); }
+  .modal-btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .modal-btn-cancel:hover { background: var(--surface2); }
+
+  /* Utils */
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ─────────────────────────────────────────────────────────────────── -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="app-title">🎯 TOLC-I 2026</div>
+      <div class="app-subtitle">Pianifica il tuo studio</div>
+    </div>
+    <div class="countdown-badge" id="countdown">25 agosto</div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-label">
+    <span id="progressText">Caricamento...</span>
+    <span id="daysLeft">0 giorni</span>
+  </div>
+</div>
+
+<!-- ─── MAIN ─────────────────────────────────────────────────────────────────── -->
+<div class="main">
+  <div class="notify-banner" id="notifyBanner">
+    <span>🔔 <strong>Attiva le notifiche</strong> per i promemoria delle sessioni</span>
+    <button class="btn-notify">Attiva</button>
+  </div>
+
+  <div id="daysContainer"></div>
+</div>
+
+<!-- ─── STATS FOOTER ─────────────────────────────────────────────────────────────────── -->
+<div class="stats-footer">
+  <div class="stats-row">
+    <div class="stat-item">
+      <div class="stat-num" id="statTotal">0</div>
+      <div class="stat-label">Sessioni</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" id="statDone">0</div>
+      <div class="stat-label">Completate</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" id="statPercent">0%</div>
+      <div class="stat-label">Progresso</div>
+    </div>
+  </div>
+  <div style="display: flex; gap: 8px;">
+    <button class="btn-sm" style="flex: 1;" onclick="addSession()">+ Aggiungi sessione</button>
+    <button class="btn-sm" style="flex: 1;" onclick="resetProgress()">↻ Ripristina</button>
+  </div>
+</div>
+
+<!-- ─── TOAST ─────────────────────────────────────────────────────────────────── -->
+<div id="toast" class="toast"></div>
+
+<!-- ─── MODAL ─────────────────────────────────────────────────────────────────── -->
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">Nuova sessione</div>
+    <div class="modal-field">
+      <label class="modal-label">Nome</label>
+      <input type="text" id="modalLabel" class="modal-input" placeholder="Es. Matematica - Esercizi">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Orario (HH:MM–HH:MM)</label>
+      <input type="text" id="modalTime" class="modal-input" placeholder="Es. 09:00–11:00">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Descrizione</label>
+      <input type="text" id="modalDesc" class="modal-input" placeholder="Es. Teoria + esercizi">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Promemoria (minuti prima)</label>
+      <input type="number" id="modalNotify" class="modal-input" placeholder="Es. 15" value="15">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-primary" id="modalBtnSave">Salva</button>
+      <button class="modal-btn modal-btn-cancel" id="modalBtnCancel">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ─── PIANO DI STUDIO TOLC-I ───────────────────────────────────────────────────
+let plan = [
+  {
+    name: 'Venerdì 21',
+    date: new Date(2026, 7, 21),
+    focus: 'Setup + Math + Physics + Logica',
+    sessions: [
+      { label: '⚙️ Setup CISIA', time: '09:00–09:30', desc: 'Registrazione, verifiche tecniche', notify: 10 },
+      { label: '🧮 Matematica - Teoria', time: '09:30–11:00', desc: 'Esponenziali, logaritmi, disequazioni', notify: 15 },
+      { label: '📝 Esercizi Matematica', time: '11:00–12:30', desc: 'CISIA platform - mirati', notify: 15 },
+      { label: '⚛️ Fisica - Teoria', time: '14:00–15:30', desc: 'Cinematica, dinamica', notify: 15 },
+      { label: '📝 Esercizi Fisica', time: '15:30–17:00', desc: 'Moto e forze', notify: 15 },
+      { label: '🧩 Logica', time: '17:00–18:00', desc: 'Esercizi leggeri (easy wins)', notify: 15 },
+    ]
+  },
+  {
+    name: 'Sabato 22',
+    date: new Date(2026, 7, 22),
+    focus: 'Simulazione + Compleanno',
+    sessions: [
+      { label: '🎯 Simulazione Parziale', time: '09:00–11:00', desc: '~50 domande cronometrate', notify: 15 },
+      { label: '📊 Review Risultati', time: '11:00–12:30', desc: 'Analisi errori + ripasso', notify: 15 },
+      { label: '⚛️ Fisica - Rimanente', time: '14:00–15:30', desc: 'Termodinamica + onde', notify: 15 },
+      { label: '📝 Esercizi Fisica', time: '15:30–17:00', desc: 'Focus su errori', notify: 15 },
+      { label: '🇬🇧 Inglese', time: '17:00–18:00', desc: 'Se senti gap; altrimenti skip', notify: 15 },
+      { label: '🎉 COMPLEANNO', time: '20:00+', desc: 'Goditi la serata! Stacca totalmente', notify: null },
+    ]
+  },
+  {
+    name: 'Domenica 23',
+    date: new Date(2026, 7, 23),
+    focus: 'Simulazione Completa + Ripasso',
+    sessions: [
+      { label: '🎯 Simulazione Completa #1', time: '08:30–10:30', desc: '100 domande, 100 minuti cronometrati', notify: 15 },
+      { label: '📊 Review Dettagliato', time: '10:30–12:30', desc: 'Analisi completa risultati', notify: 15 },
+      { label: '🔁 Ripasso Mirati', time: '14:00–15:30', desc: 'Su topic con più errori', notify: 15 },
+      { label: '📝 Esercizi Focus', time: '15:30–17:00', desc: 'Ripeti domande sbagliate', notify: 15 },
+      { label: '🧮 Matematica - Formule', time: '17:00–18:00', desc: 'Ripassone veloce', notify: 15 },
+    ]
+  },
+  {
+    name: 'Lunedì 24',
+    date: new Date(2026, 7, 24),
+    focus: 'Lezione Patente + Leggero',
+    sessions: [
+      { label: '📚 Ripasso Veloce', time: '07:30–08:30', desc: 'Formule chiave, 1 ora max', notify: 15 },
+      { label: '🚗 Lezione Patente', time: '10:00–12:00', desc: 'Guida con istruttore', notify: 30 },
+      { label: '🎯 Simulazione Light', time: '14:00–15:30', desc: '20-30 domande, stay sharp', notify: 15 },
+      { label: '📝 Ultimo Ripasso', time: '15:30–16:30', desc: 'Formulario critico', notify: 15 },
+      { label: '🌙 Riposo & Setup', time: '18:00+', desc: 'Controlla webcam, mic, stanza. A letto presto!', notify: null },
+    ]
+  },
+  {
+    name: 'Martedì 25',
+    date: new Date(2026, 7, 25),
+    focus: 'TEST TOLC-I ✅',
+    sessions: [
+      { label: '☕ Colazione + Ripassino', time: '07:30–08:30', desc: 'Leggero, niente stress', notify: 30 },
+      { label: '💻 Setup Computer', time: '08:30–08:45', desc: 'Webcam, mic, lighting, browser', notify: 15 },
+      { label: '🎯 TEST TOLC-I', time: '09:00–10:40', desc: 'Matematica + Fisica + Logica + Inglese', notify: null },
+    ]
+  }
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let checks = {};
+const STORAGE_CHECKS = 'tolc-checks';
+const STORAGE_PLAN  = 'tolc-plan';
+
+function loadChecks() {
+  const stored = localStorage.getItem(STORAGE_CHECKS);
+  return stored ? JSON.parse(stored) : {};
+}
+
+function saveChecks(data) {
+  localStorage.setItem(STORAGE_CHECKS, JSON.stringify(data));
+}
+
+function savePlan(data) {
+  localStorage.setItem(STORAGE_PLAN, JSON.stringify(data));
+}
+
+function loadPlan() {
+  const stored = localStorage.getItem(STORAGE_PLAN);
+  return stored ? JSON.parse(stored) : plan;
+}
+
+checks = loadChecks();
+plan = loadPlan();
+
+// ─── UTILITIES ────────────────────────────────────────────────────────────────
+function getStudyDay(dayIdx) {
+  return plan[dayIdx] ? plan[dayIdx].date : new Date();
+}
+
+function getDaysUntilTest() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const testDate = new Date(2026, 7, 25);
+  testDate.setHours(0, 0, 0, 0);
+  return Math.ceil((testDate - today) / (1000 * 60 * 60 * 24));
+}
+
+function getSessionsStats() {
+  let total = 0, done = 0;
+  plan.forEach((day, di) => {
+    day.sessions.forEach((sess, si) => {
+      total++;
+      if (checks[`${di}-${si}`]) done++;
+    });
+  });
+  return { total, done };
+}
+
+function getProgressPercent() {
+  const { total, done } = getSessionsStats();
+  return total === 0 ? 0 : Math.round((done / total) * 100);
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderDays() {
+  const container = document.getElementById('daysContainer');
+  container.innerHTML = '';
+
+  plan.forEach((day, dayIdx) => {
+    const dayCard = document.createElement('div');
+    dayCard.className = 'day-card';
+
+    const now = new Date();
+    const dayStart = new Date(day.date);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(day.date);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    if (now < dayStart) {
+      // future
+    } else if (now > dayEnd) {
+      dayCard.classList.add('past');
+    } else {
+      dayCard.classList.add('today');
+    }
+
+    // Header
+    const dayHeader = document.createElement('div');
+    dayHeader.className = 'day-header';
+    dayHeader.style.cursor = 'pointer';
+
+    const dateBlock = document.createElement('div');
+    dateBlock.className = 'day-date-block';
+    dateBlock.innerHTML = `
+      <div class="day-date-num">${day.date.getDate()}</div>
+      <div class="day-date-month">AGO</div>
+    `;
+    dayHeader.appendChild(dateBlock);
+
+    const dayInfo = document.createElement('div');
+    dayInfo.className = 'day-info';
+
+    const dayName = document.createElement('div');
+    dayName.className = 'day-name';
+    dayName.textContent = day.name;
+    dayInfo.appendChild(dayName);
+
+    const dayWeekday = document.createElement('div');
+    dayWeekday.className = 'day-weekday';
+    dayWeekday.textContent = day.date.toLocaleDateString('it-IT', { weekday: 'long' });
+    dayInfo.appendChild(dayWeekday);
+
+    const dayFocus = document.createElement('div');
+    dayFocus.className = 'day-focus';
+    dayFocus.textContent = day.focus;
+    dayInfo.appendChild(dayFocus);
+
+    dayHeader.appendChild(dayInfo);
+
+    // Progress ring
+    const progressWrap = document.createElement('div');
+    progressWrap.className = 'day-progress-wrap';
+    const sessionsDone = day.sessions.filter((_, si) => checks[`${dayIdx}-${si}`]).length;
+    const sessionTotal = day.sessions.length;
+    const percent = sessionTotal === 0 ? 0 : (sessionsDone / sessionTotal) * 100;
+    const circumference = 2 * Math.PI * 15;
+    const offset = circumference - (percent / 100) * circumference;
+
+    progressWrap.innerHTML = `
+      <svg class="ring-svg" viewBox="0 0 36 36">
+        <circle class="ring-bg" cx="18" cy="18" r="15"></circle>
+        <circle class="ring-fill" cx="18" cy="18" r="15" style="stroke-dasharray: ${circumference}; stroke-dashoffset: ${offset};"></circle>
+      </svg>
+      <div class="ring-pct">${Math.round(percent)}%</div>
+    `;
+    dayHeader.appendChild(progressWrap);
+
+    // Chevron
+    const chevron = document.createElement('div');
+    chevron.className = 'day-chevron';
+    chevron.textContent = '›';
+    dayHeader.appendChild(chevron);
+
+    dayCard.appendChild(dayHeader);
+    dayCard.addEventListener('click', () => toggleDay(dayIdx));
+
+    // Body (sessions)
+    const dayBody = document.createElement('div');
+    dayBody.className = 'day-body';
+
+    day.sessions.forEach((sess, sessIdx) => {
+      const sessionEl = document.createElement('div');
+      sessionEl.className = 'session';
+      if (checks[`${dayIdx}-${sessIdx}`]) sessionEl.classList.add('done');
+
+      // Checkbox
+      const checkWrap = document.createElement('div');
+      checkWrap.className = 'sess-check-wrap';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'sess-check';
+      checkbox.checked = !!checks[`${dayIdx}-${sessIdx}`];
+      checkbox.addEventListener('change', () => {
+        checks[`${dayIdx}-${sessIdx}`] = checkbox.checked;
+        saveChecks(checks);
+        renderAll();
+      });
+      checkWrap.appendChild(checkbox);
+      sessionEl.appendChild(checkWrap);
+
+      // Details
+      const details = document.createElement('div');
+      details.className = 'sess-details';
+
+      const label = document.createElement('div');
+      label.className = 'sess-label';
+      label.textContent = sess.label;
+      details.appendChild(label);
+
+      const time = document.createElement('div');
+      time.className = 'sess-time';
+      time.textContent = sess.time;
+      details.appendChild(time);
+
+      if (sess.desc) {
+        const desc = document.createElement('div');
+        desc.className = 'sess-desc';
+        desc.textContent = sess.desc;
+        details.appendChild(desc);
+      }
+
+      if (sess.notify) {
+        const notifyWrap = document.createElement('div');
+        notifyWrap.className = 'sess-notify-wrap';
+        const notifyLabel = document.createElement('span');
+        notifyLabel.style.fontSize = '11px';
+        notifyLabel.style.color = 'var(--text-muted)';
+        notifyLabel.textContent = 'Avviso:';
+        const notifyInput = document.createElement('input');
+        notifyInput.type = 'number';
+        notifyInput.className = 'sess-notify-input';
+        notifyInput.value = sess.notify;
+        notifyInput.addEventListener('change', () => {
+          sess.notify = parseInt(notifyInput.value) || 15;
+          savePlan(plan);
+          if (Notification.permission === 'granted') scheduleNotification(dayIdx, sess);
+        });
+        notifyWrap.appendChild(notifyLabel);
+        notifyWrap.appendChild(notifyInput);
+        const notifyMin = document.createElement('span');
+        notifyMin.style.fontSize = '11px';
+        notifyMin.style.color = 'var(--text-muted)';
+        notifyMin.textContent = 'min prima';
+        notifyWrap.appendChild(notifyMin);
+        details.appendChild(notifyWrap);
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'sess-actions';
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn-sm';
+      editBtn.textContent = '✎ Modifica';
+      editBtn.onclick = () => editSession(dayIdx, sessIdx);
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn-sm btn-del';
+      delBtn.textContent = '🗑 Elimina';
+      delBtn.onclick = () => deleteSession(dayIdx, sessIdx);
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      details.appendChild(actions);
+
+      sessionEl.appendChild(details);
+      dayBody.appendChild(sessionEl);
+    });
+
+    dayCard.appendChild(dayBody);
+    container.appendChild(dayCard);
+  });
+
+  renderStats();
+  updateProgressBar();
+}
+
+function renderStats() {
+  const { total, done } = getSessionsStats();
+  const percent = getProgressPercent();
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statPercent').textContent = percent + '%';
+}
+
+function updateProgressBar() {
+  const percent = getProgressPercent();
+  const progressFill = document.getElementById('progressFill');
+  progressFill.style.width = percent + '%';
+  document.getElementById('progressText').textContent = percent + '% completato';
+  
+  const daysLeft = getDaysUntilTest();
+  document.getElementById('daysLeft').textContent = (daysLeft <= 0 ? '🎯 OGGI!' : daysLeft + (daysLeft === 1 ? ' giorno' : ' giorni'));
+  
+  if (daysLeft === 0) {
+    document.getElementById('countdown').textContent = '🎯 ADESSO!';
+  } else if (daysLeft < 0) {
+    document.getElementById('countdown').textContent = '✅ Test fatto!';
+  }
+}
+
+function renderAll() {
+  renderDays();
+  updateProgressBar();
+}
+
+function toggleDay(dayIdx) {
+  const cards = document.querySelectorAll('.day-card');
+  cards[dayIdx].classList.toggle('open');
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+let modalEditIdx = null;
+
+function showModal(title, day = null, sess = null) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalLabel').value = sess?.label || '';
+  document.getElementById('modalTime').value = sess?.time || '';
+  document.getElementById('modalDesc').value = sess?.desc || '';
+  document.getElementById('modalNotify').value = sess?.notify || 15;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function hideModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  modalEditIdx = null;
+}
+
+function addSession() {
+  // Find the closest day (today or tomorrow)
+  const now = new Date();
+  let targetDay = plan.find(d => {
+    const dStart = new Date(d.date);
+    dStart.setHours(0, 0, 0, 0);
+    const dEnd = new Date(d.date);
+    dEnd.setHours(23, 59, 59, 999);
+    return now >= dStart && now <= dEnd;
+  });
+  if (!targetDay) {
+    targetDay = plan.find(d => new Date(d.date) > now);
+  }
+  if (!targetDay) targetDay = plan[plan.length - 1];
+
+  showModal('Nuova sessione');
+  document.getElementById('modalBtnSave').onclick = () => {
+    const label = document.getElementById('modalLabel').value.trim();
+    const time = document.getElementById('modalTime').value.trim();
+    const desc = document.getElementById('modalDesc').value.trim();
+    const notify = parseInt(document.getElementById('modalNotify').value) || 15;
+
+    if (!label || !time) {
+      showToast('❌ Compila almeno Nome e Orario');
+      return;
+    }
+
+    targetDay.sessions.push({ label, time, desc, notify: notify || 15 });
+    savePlan(plan);
+    renderAll();
+    hideModal();
+    showToast('✅ Sessione aggiunta');
+  };
+}
+
+function editSession(dayIdx, sessIdx) {
+  modalEditIdx = [dayIdx, sessIdx];
+  const sess = plan[dayIdx].sessions[sessIdx];
+  showModal('Modifica sessione', plan[dayIdx], sess);
+
+  document.getElementById('modalBtnSave').onclick = () => {
+    const label = document.getElementById('modalLabel').value.trim();
+    const time = document.getElementById('modalTime').value.trim();
+    const desc = document.getElementById('modalDesc').value.trim();
+    const notify = parseInt(document.getElementById('modalNotify').value) || 15;
+
+    if (!label || !time) {
+      showToast('❌ Compila almeno Nome e Orario');
+      return;
+    }
+
+    plan[dayIdx].sessions[sessIdx] = { label, time, desc, notify: notify || 15 };
+    savePlan(plan);
+    renderAll();
+    hideModal();
+    showToast('✅ Sessione aggiornata');
+  };
+}
+
+function deleteSession(dayIdx, sessIdx) {
+  if (!confirm('Sei sicuro di voler eliminare questa sessione?')) return;
+
+  const newChecks = {};
+  Object.keys(checks).forEach(k => {
+    const [d, s] = k.split('-').map(Number);
+    if (d === dayIdx) {
+      if (s < sessIdx) newChecks[k] = checks[k];
+      else if (s > sessIdx) newChecks[`${d}-${s-1}`] = checks[k];
+    } else {
+      newChecks[k] = checks[k];
+    }
+  });
+  checks = newChecks;
+  plan[dayIdx].sessions.splice(sessIdx, 1);
+  saveChecks(checks);
+  savePlan(plan);
+  renderAll();
+  showToast('🗑 Sessione eliminata');
+}
+
+function resetProgress() {
+  if (!confirm('Ripristinare il progresso? (Non elimina il piano)')) return;
+  checks = {};
+  saveChecks(checks);
+  renderAll();
+  showToast('↻ Progresso ripristinato');
+}
+
+// ─── MODAL CLOSE ──────────────────────────────────────────────────────────────
+document.getElementById('modalBtnCancel').addEventListener('click', hideModal);
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalOverlay')) hideModal();
+});
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+let swRegistration = null;
+
+function isInsecureContext() {
+  return location.protocol === 'file:' ||
+    (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1');
+}
+
+function initNotifyBanner() {
+  const banner = document.getElementById('notifyBanner');
+  if (!banner || !('Notification' in window)) {
+    banner.style.display = 'none';
+    return;
+  }
+
+  const btn = banner.querySelector('.btn-notify');
+  btn.onclick = requestNotifications;
+}
+
+async function requestNotifications() {
+  if (!('Notification' in window)) {
+    showToast('❌ Browser non supporta le notifiche');
+    return;
+  }
+  if (isInsecureContext()) {
+    showToast('⚠️ Serve HTTPS (o localhost) per attivare le notifiche');
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    showToast('🔔 Notifiche attivate!');
+    scheduleAllNotifications();
+  } else {
+    showToast('❌ Notifiche negate.');
+  }
+  initNotifyBanner();
+}
+
+function scheduleNotification(dayIdx, sess) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!sess.notify) return;
+
+  const startStr = (sess.time || '').split('–')[0].trim();
+  const [hh, mm] = startStr.split(':').map(Number);
+  if (isNaN(hh) || isNaN(mm)) return;
+
+  const d = new Date(plan[dayIdx].date);
+  d.setHours(hh, mm, 0, 0);
+  const notifyAt = d.getTime() - sess.notify * 60000;
+  const delay = notifyAt - Date.now();
+  if (delay < 0) return;
+
+  setTimeout(() => {
+    if (swRegistration) {
+      swRegistration.showNotification(`⏰ ${sess.label}`, {
+        body: `Inizia tra ${sess.notify} min · ${sess.time}${sess.desc ? '\n'+sess.desc.slice(0,100) : ''}`,
+        icon: 'icon-192.png',
+        badge: 'icon-192.png',
+        vibrate: [200, 100, 200],
+        tag: `sess-${dayIdx}-${sess.time}`,
+        renotify: true,
+      });
+    } else {
+      new Notification(`⏰ ${sess.label}`, {
+        body: `Inizia tra ${sess.notify} min · ${sess.time}`,
+        icon: 'icon-192.png',
+      });
+    }
+  }, delay);
+}
+
+function scheduleAllNotifications() {
+  plan.forEach((day, di) => {
+    day.sessions.forEach(sess => scheduleNotification(di, sess));
+  });
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────────
+renderAll();
+initNotifyBanner();
+
+if ('serviceWorker' in navigator && !isInsecureContext()) {
+  navigator.serviceWorker.register('sw.js')
+    .then(reg => {
+      swRegistration = reg;
+      if (Notification.permission === 'granted') scheduleAllNotifications();
+    })
+    .catch(() => {});
+}
+</script>
+</body>
+</html>
